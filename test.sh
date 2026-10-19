@@ -115,6 +115,72 @@ else
     echo "FAIL: Opsi --help"
 fi
 
+# Test 13-20: Opsi -j (JSON satu baris), dibandingkan dengan awk/wc
+test_json() {
+    local desc="$1"
+    local file="$2"
+
+    TOTAL=$((TOTAL + 1))
+
+    local expected="{\"baris\":$(awk 'END{print NR}' "$file"),\"kata\":$(wc -w < "$file"),\"byte\":$(wc -c < "$file")}"
+    local actual
+    actual=$(bash hitung.sh -j "$file" 2>/dev/null)
+    local code=$?
+    local nlines=$(bash hitung.sh -j "$file" 2>/dev/null | awk 'END{print NR}')
+
+    if [ "$code" = "0" ] && [ "$actual" = "$expected" ] && [ "$nlines" = "1" ]; then
+        PASS=$((PASS + 1))
+        echo "PASS: -j $desc"
+    else
+        FAIL=$((FAIL + 1))
+        echo "FAIL: -j $desc"
+        echo "  Expected -> $expected"
+        echo "  Actual   -> $actual (exit $code, $nlines baris)"
+    fi
+}
+
+test_json "file kosong" "$d/empty.txt"
+test_json "satu baris tanpa newline" "$d/one_line.txt"
+test_json "multiple baris dan kata" "$d/multi.txt"
+test_json "spasi berlebih" "$d/spaces.txt"
+test_json "karakter glob" "$d/glob_chars.txt"
+
+# Test: -j tanpa nama file
+TOTAL=$((TOTAL + 1))
+stdout_j=$(bash hitung.sh -j 2>/dev/null)
+stderr_j=$(bash hitung.sh -j 2>&1 >/dev/null)
+code_j=$?
+if [ "$code_j" != "0" ] && [ -z "$stdout_j" ] && [ -n "$stderr_j" ]; then
+    PASS=$((PASS + 1))
+    echo "PASS: -j tanpa nama file"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: -j tanpa nama file"
+fi
+
+# Test: -j dengan file tidak ada
+TOTAL=$((TOTAL + 1))
+stdout_jm=$(bash hitung.sh -j "/nonexistent/file.txt" 2>/dev/null)
+stderr_jm=$(bash hitung.sh -j "/nonexistent/file.txt" 2>&1 >/dev/null)
+code_jm=$?
+if [ "$code_jm" != "0" ] && [ -z "$stdout_jm" ] && [ -n "$stderr_jm" ]; then
+    PASS=$((PASS + 1))
+    echo "PASS: -j dengan file tidak ada"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: -j dengan file tidak ada"
+fi
+
+# Test: teks bantuan menyebut -j
+TOTAL=$((TOTAL + 1))
+if bash hitung.sh -h 2>/dev/null | grep -q -- "-j"; then
+    PASS=$((PASS + 1))
+    echo "PASS: Bantuan menyebut -j"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: Bantuan menyebut -j"
+fi
+
 echo ""
 echo "Hasil: $PASS/$TOTAL passed, $FAIL failed"
 

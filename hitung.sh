@@ -1,12 +1,15 @@
 #!/bin/bash
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    echo "Penggunaan: $0 <nama_file>"
+    echo "Penggunaan: $0 [-j] <nama_file>"
     exit 0
 fi
 
+json=0
+if [ "$1" = "-j" ]; then json=1; shift; fi
+
 if [ -z "$1" ]; then
-    echo "Penggunaan: $0 <nama_file>" >&2
+    echo "Penggunaan: $0 [-j] <nama_file>" >&2
     exit 1
 fi
 
@@ -25,6 +28,10 @@ while IFS= read -r line || [ -n "$line" ]; do
     kata=$((kata + ${#kata_kata[@]}))
 done < "$1"
 
-echo "Baris: $baris"
-echo "Kata: $kata"
-echo "Byte: $byte"
+if [ "$json" = "1" ]; then
+    printf '{"baris":%d,"kata":%d,"byte":%d}\n' "$baris" "$kata" "$byte"
+else
+    echo "Baris: $baris"
+    echo "Kata: $kata"
+    echo "Byte: $byte"
+fi

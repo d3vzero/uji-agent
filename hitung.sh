@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "Penggunaan: $0 <nama_file>"
+    exit 0
+fi
+
 if [ -z "$1" ]; then
     echo "Penggunaan: $0 <nama_file>" >&2
     exit 1

@@ -91,6 +91,30 @@ else
     echo "FAIL: File tidak ada"
 fi
 
+# Test 11: Opsi -h
+TOTAL=$((TOTAL + 1))
+stdout_h=$(bash hitung.sh -h 2>/dev/null)
+code_h=$?
+if [ "$code_h" = "0" ] && [ -n "$stdout_h" ]; then
+    PASS=$((PASS + 1))
+    echo "PASS: Opsi -h"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: Opsi -h"
+fi
+
+# Test 12: Opsi --help
+TOTAL=$((TOTAL + 1))
+stdout_help=$(bash hitung.sh --help 2>/dev/null)
+code_help=$?
+if [ "$code_help" = "0" ] && [ -n "$stdout_help" ]; then
+    PASS=$((PASS + 1))
+    echo "PASS: Opsi --help"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: Opsi --help"
+fi
+
 echo ""
 echo "Hasil: $PASS/$TOTAL passed, $FAIL failed"
 

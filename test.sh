@@ -1,0 +1,77 @@
+#!/bin/bash
+
+d=$(mktemp -d)
+trap 'rm -rf "$d"' EXIT
+
+PASS=0
+FAIL=0
+TOTAL=0
+
+test_case() {
+    local desc="$1"
+    local file="$2"
+
+    TOTAL=$((TOTAL + 1))
+
+    local expected_lines=$(awk 'END{print NR}' "$file")
+    local expected_words=$(wc -w < "$file")
+    local expected_chars=$(wc -c < "$file")
+
+    local output=$(bash hitung.sh "$file" 2>&1)
+    local actual_lines=$(echo "$output" | grep "Baris:" | awk '{print $2}')
+    local actual_words=$(echo "$output" | grep "Kata:" | awk '{print $2}')
+    local actual_chars=$(echo "$output" | grep "Karakter:" | awk '{print $2}')
+
+    if [ "$actual_lines" != "$expected_lines" ] || [ "$actual_words" != "$expected_words" ] || [ "$actual_chars" != "$expected_chars" ]; then
+        FAIL=$((FAIL + 1))
+        echo "FAIL: $desc"
+        echo "  Expected -> Baris: $expected_lines, Kata: $expected_words, Karakter: $expected_chars"
+        echo "  Actual   -> Baris: $actual_lines, Kata: $actual_words, Karakter: $actual_chars"
+    else
+        PASS=$((PASS + 1))
+        echo "PASS: $desc"
+    fi
+}
+
+# Test 1: File kosong
+> "$d/empty.txt"
+test_case "File kosong" "$d/empty.txt"
+
+# Test 2: Satu baris tanpa newline
+echo -n "hello" > "$d/one_line.txt"
+test_case "Satu baris tanpa newline" "$d/one_line.txt"
+
+# Test 3: Satu baris dengan newline
+echo "hello" > "$d/one_line_nl.txt"
+test_case "Satu baris dengan newline" "$d/one_line_nl.txt"
+
+# Test 4: Multiple baris dan kata
+printf "hello world\nfoo bar baz\n" > "$d/multi.txt"
+test_case "Multiple baris dan kata" "$d/multi.txt"
+
+# Test 5: Baris kosong di tengah
+printf "line1\n\nline3\n" > "$d/empty_line.txt"
+test_case "Baris kosong di tengah" "$d/empty_line.txt"
+
+# Test 6: Spasi berlebih
+printf "  hello   world  \n" > "$d/spaces.txt"
+test_case "Spasi berlebih" "$d/spaces.txt"
+
+# Test 7: Baris berisi karakter glob (* ?)
+printf "file*\n?test\na*b ?c\n" > "$d/glob_chars.txt"
+test_case "Karakter glob (* ?) di baris" "$d/glob_chars.txt"
+
+# Test 8: Baris hanya spasi dan karakter glob
+printf "  * ?  \n" > "$d/glob_only.txt"
+test_case "Baris hanya spasi dan karakter glob" "$d/glob_only.txt"
+
+echo ""
+echo "Hasil: $PASS/$TOTAL passed, $FAIL failed"
+
+if [ "$FAIL" -eq 0 ]; then
+    echo "Semua tes berhasil! ✅"
+    exit 0
+else
+    echo "Ada tes yang gagal! ❌"
+    exit 1
+fi

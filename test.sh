@@ -20,13 +20,13 @@ test_case() {
     local output=$(bash hitung.sh "$file" 2>&1)
     local actual_lines=$(echo "$output" | grep "Baris:" | awk '{print $2}')
     local actual_words=$(echo "$output" | grep "Kata:" | awk '{print $2}')
-    local actual_chars=$(echo "$output" | grep "Karakter:" | awk '{print $2}')
+    local actual_chars=$(echo "$output" | grep "Byte:" | awk '{print $2}')
 
     if [ "$actual_lines" != "$expected_lines" ] || [ "$actual_words" != "$expected_words" ] || [ "$actual_chars" != "$expected_chars" ]; then
         FAIL=$((FAIL + 1))
         echo "FAIL: $desc"
-        echo "  Expected -> Baris: $expected_lines, Kata: $expected_words, Karakter: $expected_chars"
-        echo "  Actual   -> Baris: $actual_lines, Kata: $actual_words, Karakter: $actual_chars"
+        echo "  Expected -> Baris: $expected_lines, Kata: $expected_words, Byte: $expected_chars"
+        echo "  Actual   -> Baris: $actual_lines, Kata: $actual_words, Byte: $actual_chars"
     else
         PASS=$((PASS + 1))
         echo "PASS: $desc"
@@ -64,6 +64,30 @@ test_case "Karakter glob (* ?) di baris" "$d/glob_chars.txt"
 # Test 8: Baris hanya spasi dan karakter glob
 printf "  * ?  \n" > "$d/glob_only.txt"
 test_case "Baris hanya spasi dan karakter glob" "$d/glob_only.txt"
+
+# Test 9: Tanpa argumen
+TOTAL=$((TOTAL + 1))
+stdout_noarg=$(bash hitung.sh 2>/dev/null)
+code_noarg=$?
+if [ "$code_noarg" != "0" ] && [ -z "$stdout_noarg" ]; then
+    PASS=$((PASS + 1))
+    echo "PASS: Tanpa argumen"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: Tanpa argumen"
+fi
+
+# Test 10: File tidak ada
+TOTAL=$((TOTAL + 1))
+stdout_missing=$(bash hitung.sh "/nonexistent/file.txt" 2>/dev/null)
+code_missing=$?
+if [ "$code_missing" != "0" ] && [ -z "$stdout_missing" ]; then
+    PASS=$((PASS + 1))
+    echo "PASS: File tidak ada"
+else
+    FAIL=$((FAIL + 1))
+    echo "FAIL: File tidak ada"
+fi
 
 echo ""
 echo "Hasil: $PASS/$TOTAL passed, $FAIL failed"

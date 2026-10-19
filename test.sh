@@ -15,18 +15,18 @@ test_case() {
 
     local expected_lines=$(awk 'END{print NR}' "$file")
     local expected_words=$(wc -w < "$file")
-    local expected_chars=$(wc -c < "$file")
+    local expected_bytes=$(wc -c < "$file")
 
     local output=$(bash hitung.sh "$file" 2>&1)
     local actual_lines=$(echo "$output" | grep "Baris:" | awk '{print $2}')
     local actual_words=$(echo "$output" | grep "Kata:" | awk '{print $2}')
-    local actual_chars=$(echo "$output" | grep "Byte:" | awk '{print $2}')
+    local actual_bytes=$(echo "$output" | grep "Byte:" | awk '{print $2}')
 
-    if [ "$actual_lines" != "$expected_lines" ] || [ "$actual_words" != "$expected_words" ] || [ "$actual_chars" != "$expected_chars" ]; then
+    if [ "$actual_lines" != "$expected_lines" ] || [ "$actual_words" != "$expected_words" ] || [ "$actual_bytes" != "$expected_bytes" ]; then
         FAIL=$((FAIL + 1))
         echo "FAIL: $desc"
-        echo "  Expected -> Baris: $expected_lines, Kata: $expected_words, Byte: $expected_chars"
-        echo "  Actual   -> Baris: $actual_lines, Kata: $actual_words, Byte: $actual_chars"
+        echo "  Expected -> Baris: $expected_lines, Kata: $expected_words, Byte: $expected_bytes"
+        echo "  Actual   -> Baris: $actual_lines, Kata: $actual_words, Byte: $actual_bytes"
     else
         PASS=$((PASS + 1))
         echo "PASS: $desc"
@@ -68,8 +68,9 @@ test_case "Baris hanya spasi dan karakter glob" "$d/glob_only.txt"
 # Test 9: Tanpa argumen
 TOTAL=$((TOTAL + 1))
 stdout_noarg=$(bash hitung.sh 2>/dev/null)
+stderr_noarg=$(bash hitung.sh 2>&1 >/dev/null)
 code_noarg=$?
-if [ "$code_noarg" != "0" ] && [ -z "$stdout_noarg" ]; then
+if [ "$code_noarg" != "0" ] && [ -z "$stdout_noarg" ] && [ -n "$stderr_noarg" ]; then
     PASS=$((PASS + 1))
     echo "PASS: Tanpa argumen"
 else
@@ -80,8 +81,9 @@ fi
 # Test 10: File tidak ada
 TOTAL=$((TOTAL + 1))
 stdout_missing=$(bash hitung.sh "/nonexistent/file.txt" 2>/dev/null)
+stderr_missing=$(bash hitung.sh "/nonexistent/file.txt" 2>&1 >/dev/null)
 code_missing=$?
-if [ "$code_missing" != "0" ] && [ -z "$stdout_missing" ]; then
+if [ "$code_missing" != "0" ] && [ -z "$stdout_missing" ] && [ -n "$stderr_missing" ]; then
     PASS=$((PASS + 1))
     echo "PASS: File tidak ada"
 else

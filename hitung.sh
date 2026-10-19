@@ -12,7 +12,7 @@ fi
 
 baris=0
 kata=0
-karakter=$(stat -c %s "$1")
+byte=$(stat -c %s "$1")
 
 while IFS= read -r line || [ -n "$line" ]; do
     baris=$((baris + 1))
@@ -22,4 +22,4 @@ done < "$1"
 
 echo "Baris: $baris"
 echo "Kata: $kata"
-echo "Byte: $karakter"
+echo "Byte: $byte"
